@@ -1,0 +1,110 @@
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = 800;
+canvas.height = 500;
+
+// UI
+const menu = document.getElementById("menu");
+const startBtn = document.getElementById("startBtn");
+const hud = document.getElementById("hud");
+const scoreEl = document.getElementById("score");
+
+// estado do jogo
+let running = false;
+let score = 0;
+
+// player
+let player = {
+  x: 400,
+  y: 250,
+  size: 20,
+  speed: 4
+};
+
+// teclado
+let keys = {};
+
+document.addEventListener("keydown", (e) => {
+  keys[e.key.toLowerCase()] = true;
+});
+
+document.addEventListener("keyup", (e) => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+// inimigos
+let enemies = [];
+
+function spawnEnemy() {
+  enemies.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: 20,
+    speed: 1 + Math.random() * 2
+  });
+}
+
+setInterval(() => {
+  if (running) spawnEnemy();
+}, 1500);
+
+// botão iniciar
+startBtn.onclick = () => {
+  menu.style.display = "none";
+  hud.classList.remove("hidden");
+  running = true;
+};
+
+// loop
+function gameLoop() {
+  if (running) {
+    update();
+    draw();
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+// update
+function update() {
+  score++;
+  scoreEl.innerText = score;
+
+  if (keys["w"]) player.y -= player.speed;
+  if (keys["s"]) player.y += player.speed;
+  if (keys["a"]) player.x -= player.speed;
+  if (keys["d"]) player.x += player.speed;
+
+  enemies.forEach(enemy => {
+    let dx = player.x - enemy.x;
+    let dy = player.y - enemy.y;
+    let dist = Math.hypot(dx, dy);
+
+    enemy.x += (dx / dist) * enemy.speed;
+    enemy.y += (dy / dist) * enemy.speed;
+
+    if (dist < player.size) {
+      alert("Game Over");
+      location.reload();
+    }
+  });
+}
+
+// draw
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // player
+  ctx.fillStyle = "lime";
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+
+  // enemies
+  ctx.fillStyle = "red";
+  enemies.forEach(enemy => {
+    ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+  });
+}
+
+// start loop
+gameLoop();
+
